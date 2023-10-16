@@ -50,14 +50,24 @@ app.get('/api/persons', (req, res) => {
     res.json(persons)
 })
 
+const errorResponse = (res, msg) => {
+    return res.status(400).json({error: msg})
+}
 app.post('/api/persons', (req,res) => {
     if (!req.body.name) {
-        return res.status(400).json({error: "No person"})
+        return errorResponse(res,"No name.")
     }
+    if (!req.body.number) {
+        return errorResponse(res,"No number.")
+    }
+    if (persons.find(person => person.name === req.body.name)) {
+        return errorResponse(res, "Name must be unique.")
+    }
+
     const person = {
         name: req.body.name,
-        number: Math.floor(Math.random() * 100000),
-        id: generateId()
+        number: req.body.number,
+        id: Math.floor(Math.random() * 100000)
     }
     persons = persons.concat(person)
     res.json(person)
