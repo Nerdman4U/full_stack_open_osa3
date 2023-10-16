@@ -13,6 +13,10 @@ let persons = [
     {id: 5, name: "asdf6", number:6}
 ]
 
+const generateId = () => {
+    const maxId = persons.length > 0 ? Math.max(...persons.map(p => p.id)) : 0
+    return maxId + 1
+}
 
 app.get('/', (req, res) => {
     res.send('<h1>Hello World!</h1>')
@@ -45,8 +49,19 @@ app.delete('/api/persons/:id', (req,res) => {
 app.get('/api/persons', (req, res) => {
     res.json(persons)
 })
-  
 
+app.post('/api/persons', (req,res) => {
+    if (!req.body.name) {
+        return res.status(400).json({error: "No person"})
+    }
+    const person = {
+        name: req.body.name,
+        number: Math.floor(Math.random() * 100000),
+        id: generateId()
+    }
+    persons = persons.concat(person)
+    res.json(person)
+})
 
 app.listen(PORT, () => {
     console.log("Palvelin pyörimässä!")
