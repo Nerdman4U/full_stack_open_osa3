@@ -18,6 +18,13 @@ app.get('/', (req, res) => {
     res.send('<h1>Hello World!</h1>')
 })
 
+app.get('/info', (req, res) => {
+    const info_line = `Phonebook has info for ${persons.length} persons.`
+    const date_line = `${Date()}`
+    const result = `<div><p>${info_line}</p><p>${date_line}</p></div>`
+    res.send(result)
+})
+
 app.get('/api/persons', (req, res) => {
     res.json(persons)
 })
