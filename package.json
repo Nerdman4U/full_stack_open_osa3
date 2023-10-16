@@ -1,0 +1,14 @@
+{
+  "name": "full_stack_open_osa3_t1",
+  "version": "1.0.0",
+  "description": "Osa 3 ensimmäinen tehtävä, puhelinluetton backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Joni Töyrylä",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
