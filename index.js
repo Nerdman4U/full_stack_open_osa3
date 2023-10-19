@@ -1,9 +1,19 @@
 const express = require('express')
 const morgan = require('morgan')
+let path = require('path')
+let rfs = require('rotating-file-stream') // version 2.x
+
+// Using morgan log to file
+var accessLogStream = rfs.createStream('access.log', {
+    interval: '1d', // rotate daily
+    path: path.join(__dirname, 'log')
+})
+
 const PORT = 3001
 const app = express()
 app.use(express.json())
-app.use(morgan('tiny'))
+//app.use(morgan('combined', { stream: accessLogStream }))
+app.use(morgan('combined'))
 
 let persons = [
     {id: 1, name: "asdf1", number:1},
