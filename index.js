@@ -1,5 +1,6 @@
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
 let path = require('path')
 let rfs = require('rotating-file-stream') // version 2.x
 
@@ -9,11 +10,13 @@ var accessLogStream = rfs.createStream('access.log', {
     path: path.join(__dirname, 'log')
 })
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 const app = express()
 app.use(express.json())
+app.use(express.static('dist'))
 //app.use(morgan('combined', { stream: accessLogStream }))
 app.use(morgan('combined'))
+app.use(cors())
 
 let persons = [
     {id: 1, name: "asdf1", number:1},
@@ -21,7 +24,7 @@ let persons = [
     {id: 3, name: "asdf3", number:3},
     {id: 4, name: "asdf4", number:4},
     {id: 5, name: "asdf5", number:5},
-    {id: 5, name: "asdf6", number:6}
+    {id: 6, name: "asdf6", number:6}
 ]
 
 const generateId = () => {
