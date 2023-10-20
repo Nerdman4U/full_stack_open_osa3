@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:ui": "rm -rf dist && cd ../full_stack_open/osa2/t6 && npm run build && cp -r dist ../../../full_stack_open_osa3_t1"
   },
   "author": "Joni Töyrylä",
   "license": "ISC",
