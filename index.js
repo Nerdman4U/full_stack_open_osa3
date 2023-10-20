@@ -64,18 +64,18 @@ app.get('/api/persons', (req, res) => {
     res.json(persons)
 })
 
-const errorResponse = (res, msg) => {
+const error400Response = (res, msg) => {
     return res.status(400).json({error: msg})
 }
 app.post('/api/persons', (req,res) => {
     if (!req.body.name) {
-        return errorResponse(res,"No name.")
+        return error400Response(res,"No name.")
     }
     if (!req.body.number) {
-        return errorResponse(res,"No number.")
+        return error400Response(res,"No number.")
     }
     if (persons.find(person => person.name === req.body.name)) {
-        return errorResponse(res, "Name must be unique.")
+        return error400Response(res, "Name must be unique.")
     }
 
     const person = {
@@ -85,6 +85,19 @@ app.post('/api/persons', (req,res) => {
     }
     persons = persons.concat(person)
     res.json(person)
+})
+
+app.put('/api/persons/:id', (req,res) => {
+    const _id = Number(req.params.id)
+    const number = req.body.number
+    if (!number) {
+        return error400Response(res,"No number.")
+    }
+    const person = persons.find(p => p.id === _id)
+    const changedPerson = { ...person, number: number}
+    console.log("Server, put. changedPerson:", changedPerson)
+    persons = persons.map(p => p.id !== _id ? p : changedPerson)
+    res.json(changedPerson)
 })
 
 app.listen(PORT, () => {
