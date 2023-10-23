@@ -1,6 +1,8 @@
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const mongoose = require('mongoose')
+const PhoneConnect = require('./src/phoneconnect')
 let path = require('path')
 let rfs = require('rotating-file-stream') // version 2.x
 
@@ -18,14 +20,18 @@ app.use(express.static('dist'))
 app.use(morgan('combined'))
 app.use(cors())
 
-let persons = [
-    {id: 1, name: "asdf1", number:1},
-    {id: 2, name: "asdf2", number:2},
-    {id: 3, name: "asdf3", number:3},
-    {id: 4, name: "asdf4", number:4},
-    {id: 5, name: "asdf5", number:5},
-    {id: 6, name: "asdf6", number:6}
-]
+const password = process.env.MONGODB_PASSWORD
+const conn = new PhoneConnect(mongoose, password)
+
+let persons = []
+// let persons = [
+//     {id: 1, name: "asdf1", number:1},
+//     {id: 2, name: "asdf2", number:2},
+//     {id: 3, name: "asdf3", number:3},
+//     {id: 4, name: "asdf4", number:4},
+//     {id: 5, name: "asdf5", number:5},
+//     {id: 6, name: "asdf6", number:6}
+// ]
 
 const generateId = () => {
     const maxId = persons.length > 0 ? Math.max(...persons.map(p => p.id)) : 0
@@ -45,13 +51,16 @@ app.get('/info', (req, res) => {
 
 // => /api/person/:id (?)
 app.get('/api/persons/:id', (req, res) => {
-    const _id = Number(req.params.id)
-    const person = persons.find(person => person.id === _id)
-    if (person) {
-        res.json(person)
-    } else {
-        res.status(404).end()
-    }
+    //const person = persons.find(person => person.id === _id)
+    conn.connect()
+    conn.personModel.findById(req.params.id)
+      .then((person) => {
+        if (person) {
+            res.json(person)
+        } else {
+            res.status(404).end()
+        }
+      })
 })
 
 app.delete('/api/persons/:id', (req,res) => {
@@ -61,7 +70,11 @@ app.delete('/api/persons/:id', (req,res) => {
 })
 
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
+    conn.connect()
+    console.log("/api/persons, readyState:", mongoose.connection.readyState);
+    conn.getPersons().then((persons) => {
+        res.json(persons)
+    })
 })
 
 const error400Response = (res, msg) => {
@@ -78,13 +91,10 @@ app.post('/api/persons', (req,res) => {
         return error400Response(res, "Name must be unique.")
     }
 
-    const person = {
-        name: req.body.name,
-        number: req.body.number,
-        id: Math.floor(Math.random() * 100000)
-    }
-    persons = persons.concat(person)
-    res.json(person)
+    conn.addPerson(req.body.name, req.body.number)
+      .then((savedPerson) => {
+        res.json(savedPerson)
+    })
 })
 
 app.put('/api/persons/:id', (req,res) => {
