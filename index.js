@@ -22,6 +22,8 @@ const errorHandler = (error, request, response, next) => {
     console.log("MESSAGE", error.message)
     if (error.name === "CastError") {
         return response.status(400).send({error: "malformatted id"})
+    } else if (error.name === 'ValidationError') {
+        return response.status(400).send({error: error.message})
     }
     next(error)
 }
@@ -94,7 +96,7 @@ app.get('/api/persons', (req, res) => {
 const error400Response = (res, msg) => {
     return res.status(400).json({error: msg})
 }
-app.post('/api/persons', (req,res) => {
+app.post('/api/persons', (req,res,next) => {
     if (!req.body.name) {
         return error400Response(res,"No name.")
     }
@@ -109,6 +111,7 @@ app.post('/api/persons', (req,res) => {
     person.save().then((savedPerson) => {
         res.json(savedPerson)
     })
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (req,res,next) => {
@@ -116,8 +119,9 @@ app.put('/api/persons/:id', (req,res,next) => {
     if (!number) {
         return error400Response(res,"No number.")
     }
-    changed = { number: number }
-    Person.findByIdAndUpdate(req.body.id, changed, {new: true})
+
+    Person.findByIdAndUpdate(req.body.id, { number },
+        { new: true, runValidators:true, context:'query'})
         .then(person => {
             res.json(person)
         })
