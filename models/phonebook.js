@@ -8,7 +8,7 @@ const url = `mongodb+srv://jonitoyryla2:${password}@yonisthebest.aguxysm.mongodb
 mongoose.set('strictQuery', false)
 mongoose.connect(url)
     .then(result => {console.log("connected")})
-    .catch((e) => {console.log("error connecting")})
+    .catch((e) => {console.log("error connecting, e:", e)})
 
 const PhoneSchema = new mongoose.Schema({
     name: {
