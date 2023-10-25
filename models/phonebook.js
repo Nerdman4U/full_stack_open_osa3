@@ -7,7 +7,7 @@ const password = process.env.MONGODB_PASSWORD
 const url = `mongodb+srv://jonitoyryla2:${password}@yonisthebest.aguxysm.mongodb.net/phoneApp?retryWrites=true&w=majority`
 mongoose.set('strictQuery', false)
 mongoose.connect(url)
-  .then(result => {console.log('connected')})
+  .then(() => {console.log('connected')})
   .catch((e) => {console.log('error connecting, e:', e)})
 
 const PhoneSchema = new mongoose.Schema({

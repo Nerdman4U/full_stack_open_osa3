@@ -1,4 +1,4 @@
-/* 
+/*
 Tuli mongoose/mongodb virheilmoituksia jos yhteyden sulki requestien
 välillä... täytyy tutkia joskus...
 
@@ -6,7 +6,7 @@ välillä... täytyy tutkia joskus...
 class PhoneConnect {
   constructor(db, password, action) {
     this.db = db
-    this.password = password    
+    this.password = password
     this.action = action
     this.personSchema = null
     this.connect()

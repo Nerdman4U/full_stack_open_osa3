@@ -3,14 +3,14 @@ const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const Person = require('./models/phonebook')
-let path = require('path')
-let rfs = require('rotating-file-stream') // version 2.x
 
 // middleware, Using morgan log to file
-var accessLogStream = rfs.createStream('access.log', {
-  interval: '1d', // rotate daily
-  path: path.join(__dirname, 'log')
-})
+//let path = require('path')
+//let rfs = require('rotating-file-stream') // version 2.x
+// var accessLogStream = rfs.createStream('access.log', {
+//   interval: '1d', // rotate daily
+//   path: path.join(__dirname, 'log')
+// })
 
 // middleware, olemattomat urlit
 const unknownEndpoint = (request, response) => {
@@ -21,9 +21,9 @@ const unknownEndpoint = (request, response) => {
 const errorHandler = (error, request, response, next) => {
   console.log('MESSAGE', error.message)
   if (error.name === 'CastError') {
-    return response.status(400).send({error: 'malformatted id'})
+    return response.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError') {
-    return response.status(400).send({error: error.message})
+    return response.status(400).send({ error: error.message })
   }
   next(error)
 }
@@ -46,10 +46,10 @@ let persons = []
 //     {id: 6, name: "asdf6", number:6}
 // ]
 
-const generateId = () => {
-  const maxId = persons.length > 0 ? Math.max(...persons.map(p => p.id)) : 0
-  return maxId + 1
-}
+// const generateId = () => {
+//   const maxId = persons.length > 0 ? Math.max(...persons.map(p => p.id)) : 0
+//   return maxId + 1
+// }
 
 app.get('/', (req, res) => {
   res.send('<h1>Hello World!</h1>')
@@ -81,20 +81,20 @@ app.get('/api/persons/:id', (req, res, next) => {
 
 app.delete('/api/persons/:id', (req,res,next) => {
   Person.findByIdAndRemove(req.params.id)
-    .then(result => {
+    .then(() => {
       res.status(204).end()
     })
     .catch(error => next(error))
 })
 
-app.get('/api/persons', (req, res) => {    
+app.get('/api/persons', (req, res) => {
   Person.find({}).then((persons) => {
     res.json(persons)
   })
 })
 
 const error400Response = (res, msg) => {
-  return res.status(400).json({error: msg})
+  return res.status(400).json({ error: msg })
 }
 app.post('/api/persons', (req,res,next) => {
   if (!req.body.name) {
@@ -107,7 +107,7 @@ app.post('/api/persons', (req,res,next) => {
     return error400Response(res, 'Name must be unique.')
   }
 
-  const person = new Person({name: req.body.name, number: req.body.number})
+  const person = new Person({ name: req.body.name, number: req.body.number })
   person.save().then((savedPerson) => {
     res.json(savedPerson)
   })
@@ -121,7 +121,7 @@ app.put('/api/persons/:id', (req,res,next) => {
   }
 
   Person.findByIdAndUpdate(req.body.id, { number },
-    { new: true, runValidators:true, context:'query'})
+    { new: true, runValidators:true, context:'query' })
     .then(person => {
       res.json(person)
     })
