@@ -1,15 +1,15 @@
-// How to use:
-// const conn = new PhoneConnect(mongoose, password)
-// conn.connect()
-// conn.addPerson(name, number)
-// conn.getPersons()
+/* 
+Tuli mongoose/mongodb virheilmoituksia jos yhteyden sulki requestien
+välillä... täytyy tutkia joskus...
 
+*/
 class PhoneConnect {
     constructor(db, password, action) {
         this.db = db
         this.password = password    
         this.action = action
         this.personSchema = null
+        this.connect()
     }
     get mongoose() { return this.db }
     createSchema() {
@@ -20,12 +20,12 @@ class PhoneConnect {
     }
     // getOrCreateModel
     get personModel() {
-      return this.db.model('Person', this.getOrCreateSchema()) 
+      return this.db.model('Person', this.getOrCreateSchema())
     }
-    getOrCreateSchema() { 
+    getOrCreateSchema() {
       if (this.personSchema) {
-        console.log("getOrCreateSchema, old schema")
-        return this.personSchema
+         console.log("getOrCreateSchema, old schema")
+         return this.personSchema
       }
       console.log("getOrCreateSchema, new schema")
       const personSchema = this.createSchema()
@@ -34,12 +34,16 @@ class PhoneConnect {
     }
     connect() {
       if (!this.db) { console.log("no db"); return }
-      const url = `mongodb+srv://jonitoyryla2:${this.password}@yonisthebest.aguxysm.mongodb.net/phoneApp?retryWrites=true&w=majority`      
+      const url = `mongodb+srv://jonitoyryla2:${this.password}@yonisthebest.aguxysm.mongodb.net/phoneApp?retryWrites=true&w=majority`
       this.db.set('strictQuery', false)
-      this.db.connect(url)      
+      this.db.connect(url)
+      console.log("PhoneConnect, readyState:", this.db.connection.readyState)
+
     }
     disconnect() {
+      console.log("PhoneConnect, readyState:", this.db.connection.readyState);
       this.db.connection.close()
+      console.log("PhoneConnect, readyState:", this.db.connection.readyState);
     }
     // todo: rename printPhoneBook?
     getPersons() {
@@ -50,6 +54,7 @@ class PhoneConnect {
         return result
       })
       .catch((e) => { console.log("PhoneConnection error:", e)})
+      .finally(() => { this.disconnect() })
     }
     addPerson(name, number) {
       const person = new this.personModel({

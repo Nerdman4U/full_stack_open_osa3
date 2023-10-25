@@ -1,8 +1,8 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
-const mongoose = require('mongoose')
-const PhoneConnect = require('./src/phoneconnect')
+const Person = require('./models/phonebook')
 let path = require('path')
 let rfs = require('rotating-file-stream') // version 2.x
 
@@ -12,16 +12,14 @@ var accessLogStream = rfs.createStream('access.log', {
     path: path.join(__dirname, 'log')
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
+console.log("port", PORT)
 const app = express()
 app.use(express.json())
 app.use(express.static('dist'))
 //app.use(morgan('combined', { stream: accessLogStream }))
 app.use(morgan('combined'))
 app.use(cors())
-
-const password = process.env.MONGODB_PASSWORD
-const conn = new PhoneConnect(mongoose, password)
 
 let persons = []
 // let persons = [
@@ -51,28 +49,18 @@ app.get('/info', (req, res) => {
 
 // => /api/person/:id (?)
 app.get('/api/persons/:id', (req, res) => {
-    //const person = persons.find(person => person.id === _id)
-    conn.connect()
-    conn.personModel.findById(req.params.id)
-      .then((person) => {
-        if (person) {
-            res.json(person)
-        } else {
-            res.status(404).end()
-        }
-      })
+    Person.findById(req.params.id)
+        .then(person => res.json(person))
 })
 
 app.delete('/api/persons/:id', (req,res) => {
     const _id = Number(req.params.id)
-    persons = persons.filter((person) => person.id !== _id)
-    res.status(204).end()
+    Person.findById(_id)
+        .then(person => {res.json(person)})
 })
 
-app.get('/api/persons', (req, res) => {
-    conn.connect()
-    console.log("/api/persons, readyState:", mongoose.connection.readyState);
-    conn.getPersons().then((persons) => {
+app.get('/api/persons', (req, res) => {    
+    Person.find({}).then((persons) => {
         res.json(persons)
     })
 })
@@ -91,8 +79,8 @@ app.post('/api/persons', (req,res) => {
         return error400Response(res, "Name must be unique.")
     }
 
-    conn.addPerson(req.body.name, req.body.number)
-      .then((savedPerson) => {
+    const person = new Person({name: req.body.name, number: req.body.number})
+    person.save().then((savedPerson) => {
         res.json(savedPerson)
     })
 })
@@ -113,3 +101,5 @@ app.put('/api/persons/:id', (req,res) => {
 app.listen(PORT, () => {
     console.log("Palvelin pyörimässä!")
 })
+
+
