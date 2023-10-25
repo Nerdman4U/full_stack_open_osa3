@@ -6,14 +6,27 @@ const Person = require('./models/phonebook')
 let path = require('path')
 let rfs = require('rotating-file-stream') // version 2.x
 
-// Using morgan log to file
+// middleware, Using morgan log to file
 var accessLogStream = rfs.createStream('access.log', {
     interval: '1d', // rotate daily
     path: path.join(__dirname, 'log')
 })
 
+// middleware, olemattomat urlit
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+}
+
+// middleware, errorhandler
+const errorHandler = (error, request, response, next) => {
+    console.log("MESSAGE", error.message)
+    if (error.name === "CastError") {
+        return response.status(400).send({error: "malformatted id"})
+    }
+    next(error)
+}
+
 const PORT = process.env.PORT
-console.log("port", PORT)
 const app = express()
 app.use(express.json())
 app.use(express.static('dist'))
@@ -41,22 +54,35 @@ app.get('/', (req, res) => {
 })
 
 app.get('/info', (req, res) => {
-    const info_line = `Phonebook has info for ${persons.length} persons.`
-    const date_line = `${Date()}`
-    const result = `<div><p>${info_line}</p><p>${date_line}</p></div>`
-    res.send(result)
+    Person.find({}).then((persons) => {
+        const info_line = `Phonebook has info for ${persons.length} persons.`
+        const date_line = `${Date()}`
+        const result = `<div><p>${info_line}</p><p>${date_line}</p></div>`
+        res.send(result)
+    })
 })
 
 // => /api/person/:id (?)
-app.get('/api/persons/:id', (req, res) => {
+app.get('/api/persons/:id', (req, res, next) => {
     Person.findById(req.params.id)
-        .then(person => res.json(person))
+        .then(person => {
+            if (person) {
+                res.json(person)
+            } else {
+              res.status(404).end()
+            }
+        })
+        .catch(error => {
+            next(error)
+        })
 })
 
-app.delete('/api/persons/:id', (req,res) => {
-    const _id = Number(req.params.id)
-    Person.findById(_id)
-        .then(person => {res.json(person)})
+app.delete('/api/persons/:id', (req,res,next) => {
+    Person.findByIdAndRemove(req.params.id)
+        .then(result => {
+            res.status(204).end()
+        })
+        .catch(error => next(error))
 })
 
 app.get('/api/persons', (req, res) => {    
@@ -85,18 +111,22 @@ app.post('/api/persons', (req,res) => {
     })
 })
 
-app.put('/api/persons/:id', (req,res) => {
-    const _id = Number(req.params.id)
+app.put('/api/persons/:id', (req,res,next) => {
     const number = req.body.number
     if (!number) {
         return error400Response(res,"No number.")
     }
-    const person = persons.find(p => p.id === _id)
-    const changedPerson = { ...person, number: number}
-    console.log("Server, put. changedPerson:", changedPerson)
-    persons = persons.map(p => p.id !== _id ? p : changedPerson)
-    res.json(changedPerson)
+    changed = { number: number }
+    Person.findByIdAndUpdate(req.body.id, changed, {new: true})
+        .then(person => {
+            res.json(person)
+        })
+        .catch(error => next(error))
 })
+
+// olemattomien osoitteiden käsittely
+app.use(unknownEndpoint)
+app.use(errorHandler)
 
 app.listen(PORT, () => {
     console.log("Palvelin pyörimässä!")
