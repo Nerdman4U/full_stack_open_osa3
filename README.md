@@ -4,4 +4,4 @@
 https://sumptuous-wistful-maxilla.glitch.me/
 
 ## Versio
-0.5.1
+0.6 
